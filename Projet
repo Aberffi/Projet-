@@ -1,0 +1,649 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX 100
+
+// structure pour representer le nom d'utilisateur
+typedef struct nom_utilisateur {
+    char Nom[30];
+    char prenom[30];
+    char Password[30];
+} nom_utilisateur;
+// structure represente fournisseur
+typedef struct {
+    char NomF[30];   //le nom de fournisseur
+   char PrenomF[30];
+    int IDf;
+	char pays[30];              //Identifiant de fournisseur
+} Fournisseur;
+
+
+// structure date
+typedef struct Date {
+    int jour;
+    int mois;
+    int annee;
+} Date;
+
+// structure represente le produit electronique
+typedef struct {
+    int IDP;
+    char nom[50];
+    char marque[50];
+    char description[100];
+    float prixUT;
+    int quantite_stock;
+    int seuil_alerte;
+    Date dateDE;   //date_derniere_entree
+    Date dateDS;   //date_derniere_sortie
+    Fournisseur fournisseurP;
+} Produit;
+
+// structure represente client
+typedef struct {
+    int IDcl;
+    char nomC[30];
+    char prenomC[30];
+    char ville[30];
+} Client;
+
+// structure represente les commandes
+typedef struct {
+    int IDC;
+    int quantite;
+    Client client;
+    float montant_total;
+} Commande;
+
+//**structure ligne commande*******//
+typedef struct{
+	int quantitC;
+	Client clientC;
+	Produit produitcomande;
+	int idcl;
+}LingeDuCommande;
+
+
+
+
+// structure represente les clients fidele
+typedef struct {
+    int IDclf;
+    char nom[50];
+    float pourcentage_reduction;
+} ClientFidele;
+
+
+
+static int i;
+
+// les prototypes
+void Ajoutproduit(Produit ST[MAX], int *p);
+void afficheProduit(Produit ST[MAX], int nbEn);
+void Modifier(Produit ST[MAX], int id, int nbEn);
+void Supprimer(Produit ST[MAX], int id, int *p);
+void TrierProduit(Produit ST[MAX], int nbEn);
+void charger(Produit ST[MAX], int m);
+//***procedure d ajout d un produit****//
+void Ajoutproduit(Produit ST[MAX], int *p) {
+    int nbEn;
+
+    printf("Combien de produits souhaitez-vous ajouter ? ");
+    scanf("%d", &nbEn);
+
+     for (int i = 0; i < nbEn; i++) {
+        printf("Donnez les informations du produit que vous souhaitez ajouter :\n");
+        printf("ID : ");
+        scanf("%d", &ST[i].IDP);
+        printf("Nom : ");
+        scanf("%s", ST[i].nom);
+        printf("Marque : ");
+        scanf("%s", ST[i].marque);
+        printf("Description : ");
+        scanf("%s", ST[i].description);
+        printf("Prix unitaire : ");
+        scanf("%f", &ST[i].prixUT);
+        printf("Quantite en stock : ");
+        scanf("%d", &ST[i].quantite_stock);
+        printf("Seuil d'alerte : ");
+        scanf("%d", &ST[i].seuil_alerte);
+        printf("Date d'entree (jour mois annee) : ");
+        scanf("%d %d %d", &ST[i].dateDE.jour, &ST[i].dateDE.mois, &ST[i].dateDE.annee);
+        printf("Date de sortie (jour mois annee) : ");
+        scanf("%d %d %d", &ST[i].dateDS.jour, &ST[i].dateDS.mois, &ST[i].dateDS.annee);
+    }
+}
+ //****fonction qui affiche les produit*
+void afficheProduit(Produit ST[MAX], int nbEn) {
+    for(int i = 0; i < nbEn; i++) {
+        printf("Information du produit %d :\n", i + 1);
+        printf("ID du produit : %d\n", ST[i].IDP);
+        printf("Nom du produit : %s\n", ST[i].nom);
+        printf("Marque du produit : %s\n", ST[i].marque);
+        printf("Description du produit : %s\n", ST[i].description);
+        printf("Prix unitaire du produit : %.2f\n", ST[i].prixUT);
+        printf("Quantite en stock du produit : %d\n", ST[i].quantite_stock);
+        printf("Seuil d'alerte du produit : %d\n", ST[i].seuil_alerte);
+        printf("Derniere date d'entree du produit : %d/%d/%d\n", ST[i].dateDE.jour, ST[i].dateDE.mois, ST[i].dateDE.annee);
+        printf("Derniere date de sortie du produit : %d/%d/%d\n", ST[i].dateDS.jour, ST[i].dateDS.mois, ST[i].dateDS.annee);
+        printf("\n"); // Ligne vide pour séparer les informations des produits
+    }
+}
+
+//*****procedure de modification****//
+void Modifier(Produit ST[MAX], int id, int nbEn) {
+    for (i = 0; i < nbEn; i++) {
+        if (ST[i].IDP == id) {
+            printf("taper la nouvelle prix unitaire : ");
+            scanf("%f", &ST[i].prixUT);
+            break;
+        }
+    }
+}
+//****procedure*****pour suppremer*
+ void Supprimer(Produit ST[MAX], int id, int *p) {
+    int j = 0;
+    int trouve = 0; // Indicateur pour vérifier si l'ID a été trouvé
+
+    for(int i = 0; i < *p; i++) {
+        if(ST[i].IDP == id) {
+            trouve = 1; // L'ID a été trouvé, on le marque comme tel
+            continue;
+        }
+        ST[j] = ST[i];
+        j++;
+    } 
+
+    if(!trouve) {
+        printf("Ce ID n'existe pas.\n");
+    } else {
+        *p = j;
+    }
+}
+
+//*******procedure pour trier***///
+void TrierProduitPrix(Produit ST[MAX], int nbEn){
+    int ech;
+    Produit tmp;
+    
+    do {
+        ech = 0; // Initialise ech à zéro à chaque itération
+
+        for(int i = 0; i < nbEn - 1; i++) {
+            if(ST[i].prixUT > ST[i + 1].prixUT){
+                // Permutation
+                tmp = ST[i];
+                ST[i] = ST[i + 1];
+                ST[i + 1] = tmp;
+                ech++; // Incrémente ech si une permutation est effectuée
+            }
+        }
+    } while(ech > 0); // Continue tant qu'il y a eu des permutations dans la boucle for
+}
+//******procedure,pour trier par nom**///
+void TrierProduitNom(Produit ST[MAX], int nbEn){
+	Produit tmp;
+    for (int i = 0; i < nbEn - 1; i++) {
+        for (int j = 0; j < nbEn - i - 1; j++) {
+            if (strcmp(ST[j].nom, ST[j + 1].nom) > 0){
+                Produit tmp = ST[j];
+                ST[j] = ST[j + 1];
+                ST[j + 1] = tmp;
+            }
+        }
+    }
+}
+
+// procedure pour rechercher produit par le Nom de produit
+void RechercherNom(Produit ST[MAX], char *Nom, int nbEn){
+	int i;
+    for(int i = 0; i < nbEn; i++) {
+        if(strcmp(ST[i].nom, Nom) == 0) {
+            afficheProduit(ST,nbEn);
+            printf("\n");
+        }
+    }
+}
+//fonction affiche les produit inferieur a  1000
+void afficherProduitsPrixInf1000(Produit ST[MAX], int nbEn){
+    printf("Produits avec un prix unitaire inferieur a 1000:\n");
+    printf("----------------------------------------------\n");
+    for (int i = 0; i < nbEn; i++) {
+        if (ST[i].prixUT < 1000) {
+            printf("ID: %d, Nom: %s, Prix: %.2f\n", ST[i].IDP, ST[i].nom, ST[i].prixUT);
+        }
+    }
+    printf("\n");
+}
+
+// procedure pour sauvegarder les produits dans fichier stock
+void Sauvegarder(Produit ST[MAX], int m) {
+    FILE *pf;
+    int i;
+    pf = fopen("file.csv", "a");
+    if (pf == NULL) {
+        printf("Erreur lors de l'ouverture du fichier.\n");
+        return;
+    }
+
+    for (i = 0; i < m; i++) {
+        fprintf(pf, "%d,%s,%s,%s,%.2f,%d,%d,%d/%d/%d,%d/%d/%d\n", ST[i].IDP, ST[i].nom, ST[i].marque, ST[i].description, ST[i].prixUT, ST[i].quantite_stock, ST[i].seuil_alerte, ST[i].dateDE.jour, ST[i].dateDE.mois, ST[i].dateDE.annee, ST[i].dateDS.jour, ST[i].dateDS.mois, ST[i].dateDS.annee);
+    }
+
+    fclose(pf);
+    printf("produits sauvegardes dans le fichier 'file.csv' avec succes \n");
+}
+
+
+         //*******partie concernant les commande******
+     void AjoutCommande(Commande CT[MAX], int *c) {
+	int Ncommande;
+
+	printf("Combien de commandes souhaitez-vous ajouter ? ");
+	scanf("%d", &Ncommande);
+
+	for (int i = 0; i < Ncommande; i++) {
+		printf("Donnez les informations de chaque commande que vous souhaitez ajouter :\n");
+		printf("Donnez l'IDC du Commande : ");
+		scanf("%d", &CT[i].IDC);
+		printf("Donnez la quantite Commandee : ");
+		scanf("%d", &CT[i].quantite);
+	    printf("Donnez l'ID du client qui commande le produit  : ");
+		scanf("%d", &CT[i].client.IDcl);
+		printf("Donnez montant_total du commande   : ");
+		scanf("%f", &CT[i].montant_total);
+		
+    }
+     }
+
+     //procedure pour suppression d une commande
+     
+  void SupprimerCommande(Commande CT[MAX], int id, int *c) {
+ int j = 0;
+    int trouve = 0; // Indicateur pour vérifier si l'ID a été trouvé
+
+    for(int i = 0; i < *c; i++) {
+        if(CT[i].IDC == id) {
+            trouve = 1; // L'ID a été trouvé, on le marque comme tel
+            continue;
+        }
+       CT[j] = CT[i];
+        j++;
+    }
+
+    if(!trouve) {
+        printf("Ce ID n'existe pas.\n");
+    } else {
+        *c = j;
+    }
+}
+// procedure pour sauvegarder les commandes dans fichier stock
+void SauvegarderCommande(Commande CT[MAX], int m) {
+    FILE *JF;
+    int i;
+    JF = fopen("Commande.csv", "a");
+    if (JF == NULL) {
+        printf("Erreur lors de l'ouverture du fichier.\n");
+        return;
+    }
+
+    for (i = 0; i < m; i++) {
+        fprintf(JF, "%d,%d,%d,%.2f\n", CT[i].IDC, CT[i].quantite, CT[i].client.IDcl, CT[i].montant_total);
+    }
+
+    fclose(JF);
+    printf("les commandes sauvegardes dans le fichier 'Commande.csv' avec succes \n");
+}
+#define MAX_NAME_LENGTH 50
+
+void getNonEmptyName(char* name) {
+    int validInput = 0;
+    char tempName[MAX_NAME_LENGTH];
+
+    // Prompt user for name and validate input
+    do {
+        printf("Please enter your name: ");
+        fgets(tempName, MAX_NAME_LENGTH, stdin);
+        tempName[strcspn(tempName, "\n")] = '\0'; // Remove newline character
+
+        // Check if input is not empty
+        if (strlen(tempName) > 0) {
+            strcpy(name, tempName);
+            validInput = 1;
+        } else {
+            printf("Error: Name cannot be empty. Please try again.\n");
+        }
+    } while (!validInput);
+}
+
+//************partie concernant client********
+//fonction pour ajout d une client
+void AjoutClient(Client CL[MAX], int *cl) {
+    int nbCL;
+
+    printf("Combien de clients souhaitez-vous ajouter ? ");
+    scanf("%d", &nbCL);
+
+    for (int i = 0; i < nbCL; i++) {
+        printf("Donnez les informations du client que vous souhaitez ajouter :\n");
+        printf("Donnez l'IDcl du client : ");
+        scanf("%d", &CL[i].IDcl);
+        printf("Donnez le nom du client : ");
+        scanf("%s", CL[i].nomC);
+        printf("Donnez prenom du client : ");
+        scanf("%s", CL[i].prenomC);
+        printf("Donnez la description du client : ");
+        scanf("%s", CL[i].ville);
+        
+
+    }
+}
+//fonction pour supression d une client
+
+void SupprimerClient(Client CL[MAX], int id, int *cl) {
+     int j = 0;
+    int trouve = 0; // Indicateur pour vérifier si l'ID a été trouvé
+
+    for(int i = 0; i < *cl; i++) {
+        if(CL[i].IDcl == id) {
+            trouve = 1; // L'ID a été trouvé, on le marque comme tel
+            continue;
+        }
+        CL[j] =CL[i];
+        j++;
+    } if(!trouve) {
+        printf("Ce ID n'existe pas.\n");
+    } else {
+        *cl = j;
+    }
+}
+// procedure pour sauvegarder les client dans fichier stock
+void SauvegarderClient(Client CL[MAX], int m) {
+    FILE *pf;
+    int i;
+    pf = fopen("Client.csv", "a");
+    if (pf == NULL) {
+        printf("Erreur lors de l'ouverture du fichier.\n");
+        return;
+    }
+
+    for (i = 0; i < m; i++) {
+        fprintf(pf, "%d,%s,%s,%s\n",CL [i].IDcl, CL[i].nomC, CL[i].prenomC, CL[i].ville);
+    }
+
+    fclose(pf);
+    printf("produits sauvegardes dans le fichier 'file.csv' avec succes \n");
+}
+
+     //*******partie concernant les Fournisseur*******
+    void AjoutFournisseur(Fournisseur FN[MAX], int *f) {
+	int nbf;
+
+	printf("Combien de fournisseur souhaitez-vous ajouter ? ");
+	scanf("%d", &nbf);
+
+	for (int i = 0; i < nbf; i++) {
+		printf("Donnez les informations de chaque fournisseur que vous souhaitez ajouter :\n");
+		printf("Donnez l'IDC du fournisseur : ");
+		scanf("%d", &FN[i].IDf);
+		printf("Donnez le nom de fournisseur : ");
+		scanf("%s", FN[i].NomF);
+	    printf("Donnez pays de fournisseur : ");
+		scanf("%s", FN[i].pays);
+    }
+     }
+
+     //procedure pour suppression d un Fournisseur
+  void SupprimerFournisseur(Fournisseur FN[MAX], int id, int *f) {
+ int j = 0;
+    int trouve = 0; // Indicateur pour vérifier si l'ID a été trouvé
+
+    for(int i = 0; i < *f; i++) {
+        if(FN[i].IDf == id) {
+            trouve = 1; // L'ID a été trouvé, on le marque comme tel
+            continue;
+        }
+        FN[j] = FN[i];
+        j++;
+    }if(!trouve) {
+        printf("Ce ID n'existe pas.\n");
+    } else {
+        *f = j;
+    }
+}
+// procedure pour sauvegarder les client dans fichier stock
+void SauvegarderFournisseur(Fournisseur FN[MAX], int m) {
+    FILE *pf;
+    int i;
+    pf = fopen("Fournisseur.csv", "a");
+    if (pf == NULL) {
+        printf("Erreur lors de l'ouverture du fichier.\n");
+        return;
+    }
+
+    for (i = 0; i < m; i++) {
+        fprintf(pf, "%d,%s,%s,%s\n",FN [i].IDf, FN[i].NomF, FN[i].PrenomF,FN[i].pays);
+    }
+
+    fclose(pf);
+    printf("fournisseur sauvegardes dans le fichier 'file.csv' avec succes \n");
+}
+
+     //******partie *******//
+     //fonction pour ajout d une client
+void AjoutLingeDuCommande(LingeDuCommande LDC[MAX], int *lc) {
+    int nblc;
+
+    printf("Combien de linge commande souhaitez-vous ajouter ? ");
+    scanf("%d", &nblc);
+
+    for (int i = 0; i < nblc; i++) {
+        printf("Donnez les informations du LingeDuCommande  que vous souhaitez ajouter :\n");
+        printf("Donnez la quantite commander : ");
+        scanf("%d", &LDC[i].quantitC);
+        printf("Donnez le id du client : ");
+        scanf("%d",&LDC[i].clientC.IDcl);
+        printf("Donnez ID du produit : ");
+        scanf("%d", &LDC[i].produitcomande.IDP);
+        
+
+    }
+}
+//fonction pour supression du linge du commande
+void SupprimerLingeDuCommande(LingeDuCommande LDC[MAX] , int id, int *lc){
+    int j = 0;
+    int trouve = 0; // Indicateur pour vérifier si l'ID a été trouvé
+
+    for(int i = 0; i < *lc; i++) {
+        if(LDC[i].idcl == id) {
+            trouve = 1; // L'ID a été trouvé, on le marque comme tel
+            continue;
+        }
+        LDC[j] = LDC[i];
+        j++;
+    }if(!trouve) {
+        printf("Ce ID n'existe pas.\n");
+    } else {
+       *lc = j;
+    }
+}
+// procedure pour sauvegarder les linge du commande dans fichier stock
+void SauvegarderLingeDuCommande( LingeDuCommande LDC[MAX], int m){
+    FILE *pf;
+    int i;
+    pf = fopen("Client.csv", "a");
+    if (pf == NULL) {
+        printf("Erreur lors de l'ouverture du fichier.\n");
+        return;
+    }
+
+    for (i = 0; i < m; i++) {
+        fprintf(pf, "%d,%d,%d\n",LDC[i].clientC.IDcl, LDC[i].produitcomande.IDP, LDC[i].quantitC);
+    }
+
+    fclose(pf);
+    printf("linge du commande sauvegardes dans le fichier 'file.csv' avec succes \n");
+} 
+
+     
+
+int main(){
+    Produit ST[MAX];
+    Commande CT[MAX];
+    Client CL[MAX];
+    LingeDuCommande LDC[MAX];
+    Fournisseur FN[MAX];
+    int nbEn = 0;
+    int choix;
+     int nbLDC;
+    int *p = &nbEn;
+    int Ncommmande;
+    int *c=&Ncommmande;
+    int nbcl;
+    int nbf;
+    int nblc;
+    int *f=&nbf;
+    int *cl=&nbcl;
+    int *lc=&nblc;
+    int m;
+    int id;
+    char Nom[20];
+    char userName[MAX_NAME_LENGTH];
+
+    getNonEmptyName(userName);
+    printf("Hello, %s! Welcome to the application.\n", userName);
+
+    do {
+
+        printf("\n\t\t***MENU PRINCIPALE*** \n\n");
+        printf("1. Ajouter un produit\n");
+		printf("2. Modefier  un produit\n");
+        printf("3. Supprimer un produit\n");
+        printf("4. Afficher tous les produits\n");
+        printf("5. Rechercher par nom un produit\n");
+        printf("6. Trier les produits par nom\n");
+        printf("7. Trier les produits par prix unitaire\n");
+         printf("8. afficher Produits Prix inferieur de 1000\n");
+        printf("9. Sauvegarder les produits dans un fichier CSV\n");
+        printf("10. Ajouter Commande\n");
+        printf("11. Supprimer une commande\n");
+        printf("12. Sauvegarder les Commandes dans un fichier CSV\n");
+         printf("13. Ajouter un client \n");
+        printf("14. Supprimer un client \n");
+        printf("15. Sauvegarder les clients dans un fichier CSV\n");
+         printf("16. Ajouter un Fournisseur \n");
+        printf("17. Supprimer un Fournisseur  \n");
+        printf("18. Sauvegarder les Fournisseurs dans un fichier CSV\n");
+          printf("19. Ajouter une linge du commande \n");
+        printf("20. Supprimer une linge du commande  \n");
+        printf("21. Sauvegarder les linges du commande dans un fichier CSV\n");
+        printf("22. Quitter\n");
+        printf("\n ***   \n");
+
+        printf("Votre choix: ");
+        scanf("%d", &choix);
+
+
+        switch (choix) {
+            case 1:
+                Ajoutproduit(ST, p);
+                break;
+            case 2: {
+                printf("donner id produit que vous voulez modifiee");
+                scanf("%d", &id);
+                Modifier(ST, id, nbEn);
+            }
+            break;
+           case 3: {
+                printf("donner id produit que vous voulez supprimer");
+                scanf("%d", &id);
+                Supprimer(ST, id, p);
+             }
+            break;
+
+            case 4:
+                afficheProduit(ST, nbEn);
+                break;
+
+
+            case 5: {
+                printf("donner le nom que vous voulez rechercher");
+                scanf("%s", Nom);
+                RechercherNom(ST, Nom, nbEn);
+             }
+            break;
+            case 6:
+                TrierProduitNom(ST, nbEn);
+
+                break;
+            case 7:
+                TrierProduitPrix(ST, nbEn);
+
+                break;
+                case 8:
+             afficherProduitsPrixInf1000(ST,  nbEn);
+                break;
+            case 9:
+                Sauvegarder(ST, nbEn);
+                break;
+            case 10:
+                AjoutCommande(CT, p);
+                break;
+            case 11:{
+                printf("donner id commande que vous voulez supprimer");
+                scanf("%d", &id);
+                SupprimerCommande(CT, id, p);
+                } 
+				break;
+                 case 12:
+                 SauvegarderCommande(CT,nbEn);
+                 break;
+                  case 13:
+                  AjoutClient( CL,&nblc);
+                   break;
+                 case 14:{
+					printf("donner id commande que vous voulez supprimer");
+                  scanf("%d", &id);
+                  SupprimerClient(CL,id,&nblc);
+				        }
+                 	 break;
+                   case 15:
+                   SauvegarderClient(CL, m);
+                   break;
+                  case 16:
+                  AjoutFournisseur(FN,&nbf);
+                  break;
+                  case 17:{
+					
+                	 printf("donner id commande que vous voulez supprimer");
+                      scanf("%d", &id);
+                       SupprimerFournisseur(FN, id,&nbf);
+				      }
+					  break;
+                
+                  case 18:
+                 SauvegarderFournisseur(FN, m);
+                  break;
+                    case 19:
+                  AjoutLingeDuCommande(LDC,&nblc);
+                  break;
+                 case 20:{
+			    	printf("donner id commande que vous voulez supprimer");
+                   scanf("%d", &id);
+                  SupprimerLingeDuCommande(LDC , id,&nblc);
+			       } 
+				   break;
+                 case 21:
+                  SauvegarderLingeDuCommande( LDC, m);
+                 break;
+                  case 22:
+                  printf("Au revoir!\n");
+                   break;
+                  default:
+                   printf("Choix invalide!\n");
+      		}
+
+	} while(choix!=22);
+	return 0;
+
+}
